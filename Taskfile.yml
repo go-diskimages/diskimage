@@ -1,0 +1,38 @@
+version: '3'
+
+tasks:
+  test:
+    desc: "Run tests with coverage"
+    cmds:
+      - go test -mod=mod -tags darwin -cover ./...
+
+  build:
+    desc: "Build diskimage binary"
+    cmds:
+      - go build -mod=vendor -tags darwin -o diskimage ./cmd/diskimage/
+
+  lint:
+    desc: "Vet the package"
+    cmds:
+      - go vet -mod=vendor -tags darwin ./...
+
+
+  test-all:
+    desc: "Run tests with coverage for all platforms"
+    cmds:
+      - go test -mod=vendor -cover ./...
+
+  test-local:
+    desc: "Run tests for this module with coverage (local/module context)"
+    cmds:
+      - rm -f cover.out || true
+      - GOWORK=off go test -coverprofile=cover.out -covermode=atomic -v ./...
+      - go tool cover -func=cover.out | tail -n 1
+
+  test-ensure-coverage:
+    desc: "Run tests and fail if coverage < 100%"
+    cmds:
+      - rm -f cover.out || true
+      - GOWORK=off go test -coverprofile=cover.out -covermode=atomic ./...
+      - cov=$(go tool cover -func=cover.out | tail -n 1 | awk '{print $3}' | sed 's/%//') && \
+        if [ "$(echo "$cov >= 100" | bc -l)" -ne 1 ]; then echo "coverage $cov% < 100%"; exit 2; fi
