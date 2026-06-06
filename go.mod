@@ -22,8 +22,8 @@ require (
 
 require (
 	github.com/go-compressions/lzfse v0.0.0 // indirect
-	github.com/go-crypto/ccm v0.0.0 // indirect
-	github.com/go-crypto/zfscrypt v0.0.0 // indirect
+	github.com/go-encryptions/ccm v0.0.0 // indirect
+	github.com/go-encryptions/zfscrypt v0.0.0 // indirect
 	github.com/go-fde/clear v0.0.0 // indirect
 	github.com/go-fde/luks v0.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -66,9 +66,9 @@ replace github.com/go-diskimages/dmg => ../dmg
 
 replace github.com/go-filesystems/uefi => ../../go-filesystems/uefi
 
-replace github.com/go-crypto/zfscrypt => ../../go-crypto/zfscrypt
+replace github.com/go-encryptions/zfscrypt => ../../go-encryptions/zfscrypt
 
-replace github.com/go-crypto/ccm => ../../go-crypto/ccm
+replace github.com/go-encryptions/ccm => ../../go-encryptions/ccm
 
 replace github.com/go-fde/luks => ../../go-fde/luks
 
