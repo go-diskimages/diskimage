@@ -1,3 +1,5 @@
+<p align="center"><img src="https://raw.githubusercontent.com/go-diskimages/brand/main/social/go-diskimages.png" alt="go-diskimages/diskimage" width="720"></p>
+
 # diskimage
 
 Unified toolkit for creating and converting VM disk images (raw / QCOW2 / OCI-Tart) and patching GRUB configurations in-place. Used to prepare images for Apple Virtualization.framework VMs.
