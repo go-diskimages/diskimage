@@ -1,0 +1,4 @@
+/diskimage-benchmarks
+*.raw
+*.qcow2
+*.dmg
