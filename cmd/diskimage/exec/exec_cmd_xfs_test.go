@@ -10,7 +10,7 @@ import (
 	filesystem_xfs "github.com/go-filesystems/xfs"
 )
 
-const xfsCliTestSize = int64(4 * 1024 * 1024) // 4 MiB, matches fmtMinSize
+const xfsCliTestSize = int64(64 * 1024 * 1024) // 64 MiB: one XFS allocation group (fmtMinSize)
 
 // formatXfsAndWrite creates a fresh xfs image at TempDir + "disk.img" and
 // writes a regular file `/target`. Returns the image path.

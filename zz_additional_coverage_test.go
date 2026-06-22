@@ -14,7 +14,9 @@ import (
 
 func TestFormatFilesystem_All(t *testing.T) {
 	fses := []FilesystemType{FSExt4, FSFat32, FSBtrfs, FSXfs, FSZfs, FSExFAT, FSNTFS}
-	size := int64(8 * 1024 * 1024)
+	// 64 MiB: XFS requires a full allocation group (1 AG) to format; the other
+	// drivers all fit within it.
+	size := int64(64 * 1024 * 1024)
 	for _, fs := range fses {
 		p := filepath.Join(t.TempDir(), string(fs)+".img")
 		if err := formatFilesystem(p, size, fs, "lbl"); err != nil {

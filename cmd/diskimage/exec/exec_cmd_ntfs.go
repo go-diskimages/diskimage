@@ -6,8 +6,8 @@ import (
 	"strconv"
 
 	"github.com/go-diskimages/diskimage"
-	ntfs "github.com/go-filesystems/ntfs"
 	filesystem "github.com/go-filesystems/interface"
+	ntfs "github.com/go-filesystems/ntfs"
 )
 
 // ntfsOpenLabeller opens the image as ntfs and returns the handle as

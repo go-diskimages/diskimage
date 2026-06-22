@@ -77,11 +77,11 @@ func Ext4Label(imagePath string, partIndex int) (string, error) {
 // than extending it.
 //
 //   - Sync   : forwarded when the underlying device exposes one
-//              (qcow2.Device and *os.File both do), no-op otherwise.
+//     (qcow2.Device and *os.File both do), no-op otherwise.
 //   - Truncate: stubbed as not-supported. SetExt4Label never grows
-//              the image, so the ext4 driver shouldn't call it.
+//     the image, so the ext4 driver shouldn't call it.
 //   - Close  : intentionally a no-op. The caller owns dev and closes
-//              it via defer; closing twice would double-free.
+//     it via defer; closing twice would double-free.
 type ext4Adapter struct {
 	dev BlockDevice
 }
@@ -96,6 +96,8 @@ func (a ext4Adapter) Sync() error {
 	return nil
 }
 
-func (a ext4Adapter) Size() (int64, error)      { return a.dev.Size(), nil }
-func (a ext4Adapter) Truncate(size int64) error { return errors.New("ext4Adapter: Truncate not supported") }
-func (a ext4Adapter) Close() error              { return nil }
+func (a ext4Adapter) Size() (int64, error) { return a.dev.Size(), nil }
+func (a ext4Adapter) Truncate(size int64) error {
+	return errors.New("ext4Adapter: Truncate not supported")
+}
+func (a ext4Adapter) Close() error { return nil }

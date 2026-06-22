@@ -5,8 +5,8 @@ import (
 	"io"
 
 	"github.com/go-diskimages/diskimage"
-	filesystem "github.com/go-filesystems/interface"
 	filesystem_ext4 "github.com/go-filesystems/ext4"
+	filesystem "github.com/go-filesystems/interface"
 )
 
 // ext4OpenLabeller opens the image as ext4 and returns the handle as the

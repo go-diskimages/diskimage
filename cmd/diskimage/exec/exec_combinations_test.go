@@ -41,7 +41,11 @@ func createTestImage(t *testing.T, part diskimage.PartitionScheme, fs diskimage.
 	tmp.Close()
 	t.Cleanup(func() { os.Remove(img) })
 
-	if err := diskimage.Create(diskimage.CreateOptions{Path: img, SizeBytes: 10 * 1024 * 1024, Partition: part, Filesystem: fs}); err != nil {
+	// XFS needs a full allocation group (1 AG = 64 MiB) to format. Partitioned
+	// schemes (MBR/GPT) consume some space for the table/alignment ahead of the
+	// filesystem, so size the image at 80 MiB to keep at least 64 MiB usable in
+	// every scheme; the other drivers all fit comfortably within it.
+	if err := diskimage.Create(diskimage.CreateOptions{Path: img, SizeBytes: 80 * 1024 * 1024, Partition: part, Filesystem: fs}); err != nil {
 		t.Fatalf("create image failed: %v", err)
 	}
 	partIdx := 0

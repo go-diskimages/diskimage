@@ -114,21 +114,47 @@ func probeFilesystem(r readerAt, fsOff int64) (FilesystemType, error) {
 		}
 	}
 
-	// ZFS: uberblock magic 0x00bab10c at the start of the first uberblock slot.
-	// Uberblock region starts at 128 KiB from the start of the filesystem.
-	var zfsMagic [8]byte
-	if _, err := r.ReadAt(zfsMagic[:], fsOff+128*1024); err == nil {
-		v := binary.LittleEndian.Uint64(zfsMagic[:])
-		if v == 0x00bab10c {
-			return FSZfs, nil
-		}
-		v = binary.BigEndian.Uint64(zfsMagic[:])
-		if v == 0x00bab10c {
-			return FSZfs, nil
-		}
+	// ZFS: uberblock magic 0x00bab10c somewhere in the VDEV uberblock ring.
+	// The ring is a 128 KiB region beginning 128 KiB into the VDEV label;
+	// uberblocks are written round-robin into fixed-size slots (4 KiB for the
+	// default ashift=12), so the active uberblock lives at slot (txg % nslots)
+	// and slot 0 is not guaranteed to be populated. Scan every slot for the
+	// magic rather than assuming it sits at the very start of the ring.
+	if detectZFSUberblock(r, fsOff) {
+		return FSZfs, nil
 	}
 
 	return "", fmt.Errorf("unknown filesystem at offset %d", fsOff)
+}
+
+// ZFS VDEV uberblock-ring geometry (matches go-filesystems/zfs):
+//
+//	[0x20000 .. 0x40000)  vl_uberblock — 128 KiB uberblock ring
+//
+// Slots are uberblockSlotSize bytes apart (4 KiB for the default ashift=12),
+// and the magic 0x00bab10c is the first 8 bytes of an active slot.
+const (
+	zfsUberblockRingOffset = 128 * 1024
+	zfsUberblockRingSize   = 128 * 1024
+	zfsUberblockSlotSize   = 4096
+	zfsUberblockMagic      = uint64(0x00bab10c)
+)
+
+// detectZFSUberblock scans the VDEV uberblock ring for a slot bearing the ZFS
+// uberblock magic. ZFS may be written little- or big-endian, so both byte
+// orders are checked.
+func detectZFSUberblock(r readerAt, fsOff int64) bool {
+	var slot [8]byte
+	for off := int64(0); off < zfsUberblockRingSize; off += zfsUberblockSlotSize {
+		if _, err := r.ReadAt(slot[:], fsOff+zfsUberblockRingOffset+off); err != nil {
+			break
+		}
+		if binary.LittleEndian.Uint64(slot[:]) == zfsUberblockMagic ||
+			binary.BigEndian.Uint64(slot[:]) == zfsUberblockMagic {
+			return true
+		}
+	}
+	return false
 }
 
 // readerAt is a subset of io.ReaderAt used internally.

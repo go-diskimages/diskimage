@@ -62,11 +62,25 @@ func TestProbeFilesystem_XFS_Ext4_FAT32_BTRFS_ZFS(t *testing.T) {
 		t.Fatalf("expected btrfs, got %v", got)
 	}
 
-	// zfs uberblock magic at 128KiB
+	// zfs uberblock magic at 128KiB (ring start, slot 0)
 	zBuf := make([]byte, 128*1024+8)
 	binary.LittleEndian.PutUint64(zBuf[128*1024:], 0x00bab10c)
 	if got, _ := probeFilesystem(bytes.NewReader(zBuf), 0); got != FSZfs {
 		t.Fatalf("expected zfs, got %v", got)
+	}
+}
+
+// TestProbeFilesystem_ZFSNonZeroSlot guards against the regression where the
+// detector only checked the first uberblock slot. ZFS writes uberblocks
+// round-robin into 4 KiB slots, so the active uberblock for txg=1 sits at slot
+// 1 (offset 132 KiB) with slot 0 left blank.
+func TestProbeFilesystem_ZFSNonZeroSlot(t *testing.T) {
+	const ringOff = 128 * 1024
+	const slot = 4096
+	buf := make([]byte, ringOff+2*slot)
+	binary.BigEndian.PutUint64(buf[ringOff+slot:], 0x00bab10c)
+	if got, err := probeFilesystem(bytes.NewReader(buf), 0); err != nil || got != FSZfs {
+		t.Fatalf("expected zfs from non-zero slot, got %v (err %v)", got, err)
 	}
 }
 

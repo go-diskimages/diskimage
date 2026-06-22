@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	grubpkg "github.com/configuration-management-tool/mock/pkg/go-bootloaders/grub"
+	grubpkg "github.com/go-bootloaders/grub"
 )
 
 func TestAlignAndPartTypes(t *testing.T) {

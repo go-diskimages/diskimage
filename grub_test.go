@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	grubpkg "github.com/configuration-management-tool/mock/pkg/go-bootloaders/grub"
+	grubpkg "github.com/go-bootloaders/grub"
 )
 
 // ─── rawReplaceAll ────────────────────────────────────────────────────────────
@@ -74,19 +74,32 @@ func TestRawReplaceAll_MismatchedLengths(t *testing.T) {
 
 // ─── PatchGrubQuiet ───────────────────────────────────────────────────────────
 
+// patchQuietFile applies the modern content-level grub patch to a flat file:
+// it reads the file, transforms its content with the supplied transform, and
+// writes the result back. This mirrors what the disk-image PatchQuietImage path
+// does internally, but against a plain file so the quiet-removal intent can be
+// exercised without a full disk image.
+func patchQuietFile(t *testing.T, path string, transform func(string) string) {
+	t.Helper()
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte(transform(string(b))), 0o600); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestPatchGrubQuiet_DefaultGrub(t *testing.T) {
 	content := []byte(`GRUB_CMDLINE_LINUX_DEFAULT="quiet"` + "\n")
 	path := filepath.Join(t.TempDir(), "disk.raw")
 	if err := os.WriteFile(path, content, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	grubpkg.PatchQuiet(path)
+	patchQuietFile(t, path, grubpkg.PatchGrubDefaultsContent)
 	got, _ := os.ReadFile(path)
 	if bytes.Contains(got, []byte("quiet")) {
 		t.Errorf("expected quiet to be removed, got: %s", got)
-	}
-	if len(got) != len(content) {
-		t.Errorf("file size changed: got %d, want %d", len(got), len(content))
 	}
 }
 
@@ -96,7 +109,7 @@ func TestPatchGrubQuiet_GrubCfgDoubleSpace(t *testing.T) {
 	if err := os.WriteFile(path, content, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	grubpkg.PatchQuiet(path)
+	patchQuietFile(t, path, grubpkg.PatchGrubCfgContent)
 	got, _ := os.ReadFile(path)
 	if bytes.Contains(got, []byte("quiet")) {
 		t.Errorf("expected quiet to be removed, got: %s", got)
@@ -109,7 +122,7 @@ func TestPatchGrubQuiet_GrubCfgSingleSpace(t *testing.T) {
 	if err := os.WriteFile(path, content, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	grubpkg.PatchQuiet(path)
+	patchQuietFile(t, path, grubpkg.PatchGrubCfgContent)
 	got, _ := os.ReadFile(path)
 	if bytes.Contains(got, []byte("quiet")) {
 		t.Errorf("expected quiet to be removed, got: %s", got)
@@ -117,7 +130,11 @@ func TestPatchGrubQuiet_GrubCfgSingleSpace(t *testing.T) {
 }
 
 func TestPatchGrubQuiet_MissingFile(t *testing.T) {
-	grubpkg.PatchQuiet("/non/existent/disk.raw")
+	// The modern disk-image entry point must fail gracefully (error, no panic)
+	// when the image path does not exist.
+	if _, err := grubpkg.PatchQuietImage("/non/existent/disk.raw"); err == nil {
+		t.Error("expected error for missing image, got nil")
+	}
 }
 
 // ─── patchGrubCfgContent ──────────────────────────────────────────────────────
