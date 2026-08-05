@@ -1,7 +1,7 @@
 Integration test resource recommendations
 
 This document lists minimal recommended image sizes and notes for running the
-`pkg/go-diskimages/diskimage` integration stress tests that exercise multiple filesystem
+`go-diskimages/diskimage` integration stress tests that exercise multiple filesystem
 implementations.
 
 Recommended minimal image sizes (used by the stress test):
@@ -28,8 +28,8 @@ Notes and rationale:
   a partitioned image (e.g., ZFS drivers may require special handling). The
   integration tests currently try both bare images and images with MBR/GPT
   partition tables; if you observe driver-specific errors for partitioned
-  images, prefer re-running with `DISKIMAGE_STRESS_HEAVY=1` and larger image
-  sizes, or run the single-FS targeted test for diagnosis.
+  images, prefer re-running with a larger `DISKIMAGE_STRESS_ITERS` reduction
+  and larger image sizes, or run the single-FS targeted test for diagnosis.
 
 - Disk space: running the full matrix (all filesystems × partitions) at the
   recommended sizes may require tens of GiB of temporary disk space while

@@ -2,48 +2,97 @@
 
 # diskimage
 
-Unified toolkit for creating and converting VM disk images (raw / QCOW2 / OCI-Tart) and patching GRUB configurations in-place. Used to prepare images for Apple Virtualization.framework VMs.
+Unified toolkit (library + CLI) for creating, converting, resizing, and
+reading/writing files inside VM disk images (raw / DMG-UDIF, plus QCOW2 via
+the CLI), across ext4/fat32/btrfs/xfs/zfs/exfat/apfs and MBR/GPT partition
+tables, with optional LUKS and APFS FileVault encryption. Used to prepare
+images for Apple Virtualization.framework VMs. GRUB-config patching lives in
+the sibling [`go-bootloaders/grub`](https://github.com/go-bootloaders/grub)
+package; OCI/Tart image extraction lives in the sibling
+[`tart-oci`](https://github.com/go-diskimages/tart-oci) package.
 
 Note: the CLI command was renamed from `diskimagec` to `diskimage`.
 
 ## Module
 
 ```
-github.com/openweft/diskimage
+github.com/go-diskimages/diskimage
 ```
 
-Depends on [`ext4`](../go-filesystems/ext4) and [`lzfse`](../go-compressions/lzfse).
+The orchestrator of the `go-diskimages` family: it composes
+[`dmg`](https://github.com/go-diskimages/dmg) and
+[`qcow2`](https://github.com/go-diskimages/qcow2) (image containers),
+the [`go-filesystems`](https://github.com/go-filesystems) drivers (ext4,
+fat32, btrfs, xfs, zfs, exfat, apfs, uefi), [`go-fde`](https://github.com/go-fde)
+(APFS/LUKS full-disk encryption), and [`go-bootloaders/grub`](https://github.com/go-bootloaders/grub)
+into one CLI + library. See `go.mod` for exact versions.
+
+For raw→OCI/Tart image extraction, see the sibling
+[`tart-oci`](https://github.com/go-diskimages/tart-oci) package.
 
 ## API
 
-### Raw images
+### Creating images
 
 ```go
-func CreateRaw(path string, sizeBytes int64) error
+func Create(opts CreateOptions) error
 ```
 
-### QCOW2 → raw conversion
+`CreateOptions` selects the container format (`FormatRaw` or `FormatDmg`),
+partition scheme (`PartNone`, `PartMBR`, `PartGPT`), filesystem
+(`FSNone`, `FSExt4`, `FSFat32`, `FSBtrfs`, `FSXfs`, `FSZfs`, `FSExFAT`,
+`FSNTFS`, `FSApfs`), volume label, and — for DMG images — the UDIF
+sub-format (`DmgUDIFFormat`) and an optional FileVault passphrase
+(`DmgPassphrase`, APFS only). QCOW2 image creation is exposed by the CLI
+(`diskimage create qcow2`) via the sibling `qcow2` package directly, not
+through `CreateOptions`.
+
+### Growing, resizing, converting
 
 ```go
-func IsQCOW2File(path string) bool
-func ConvertQCOW2ToRaw(src, dst string, w io.Writer) error
+func Grow(path string, sizeBytes int64) error
+func ResizeImage(path string, newSizeBytes int64) error
+func ConvertImageFormat(path, dstFormat string) error
 ```
 
-### OCI / Tart disk extraction *(darwin)*
+`ResizeImage` and `ConvertImageFormat` are pure Go (via the `dmg`
+package's UDIF codec) and work on all platforms — see
+[UDIF / DMG](#udif--dmg) below.
+
+### File operations inside an image
 
 ```go
-const TartDiskMediaType = "application/vnd.cirruslabs.tart.disk.v2"
-
-func BlobPath(cacheDir, digest string) string
-func ExtractOCIDisk(cacheDir, dst string, w io.Writer) error
+func ReadFile(opts FileOptions) ([]byte, error)
+func WriteFile(opts FileOptions, data []byte, perm os.FileMode) error
+func Stat(opts FileOptions) (filesystem.Stat, error)
+func Rename(opts FileOptions, newPath string) error
+func DeleteFile(opts FileOptions) error
+func DeleteDir(opts FileOptions) error
+func MkDir(opts FileOptions, perm os.FileMode) error
+func List(opts ListOptions) ([]ListEntry, error)
 ```
 
-### GRUB patching *(darwin)*
+`FileOptions`/`ListOptions` name the image path, optional partition
+index, and (auto-detected if empty) filesystem type; `ListOptions`
+can also request populated `Mode`/`Size`/`Inode` via `FetchStat`.
+
+### Filesystem detection
 
 ```go
-func PatchGrubQuiet(diskPath string)   // removes `quiet` from GRUB cmdline
-func PatchGrubConsole(diskPath string) // enables VGA + VirtIO console
+func DetectFilesystem(imagePath string, partIndex int) (FilesystemType, error)
 ```
+
+Probes magic bytes for ext4, fat32, btrfs, xfs, zfs, exfat.
+
+### UEFI variable store
+
+```go
+func CreateUEFIVarsStore(path string, sizeBytes int64) (UEFIVarsStore, error)
+```
+
+`UEFIVarsSizeX86_64` (512 KiB, OVMF_VARS.fd-compatible) and
+`UEFIVarsSizeARM64` (64 MiB, QEMU_VARS.fd-compatible) give the
+conventional store sizes.
 
 ### Volume label (ext4)
 
@@ -131,11 +180,18 @@ length in its header); for LUKS2 it reflects the configured payload length.
 
 ## Build requirements
 
-macOS only for OCI and GRUB features (build tag `darwin`).
+Pure Go (`CGO_ENABLED=0`), cross-platform, all six supported 64-bit
+architectures. A handful of darwin-only integration tests
+(`dmg_convert_resize_integration_test.go`, `grub_test.go`) additionally
+cross-check the pure-Go UDIF codec against real `hdiutil` output and the
+`go-bootloaders/grub` patch helpers against real GRUB behavior on macOS;
+they build under the `darwin` tag but are not part of the public API and
+are not required to build or use the library on any platform.
 
 ## Used by
 
-- [`pkg/openweft/weft`](../apple-vz/vzd) — extracts and prepares VM disk images
+- `weft` (`github.com/openweft`) — extracts and prepares VM disk images
+  for Apple Virtualization.framework VMs
 
 ## Notes
 
@@ -144,10 +200,8 @@ macOS only for OCI and GRUB features (build tag `darwin`).
 	 - Otherwise the driver allocates a new block for the micro‑ZAP and updates the directory dnode to point to it.
 	 - This is a pragmatic compatibility path (avoids implementing full fat‑ZAP write support) and has limitations — very large directories or long names may exceed micro‑ZAP capacity and cause write errors.
  - Partitioned images: allocation offsets are partition-aware; writes are performed at `partition base + allocator offset` to ensure correct physical placement inside partitioned images.
- - Debugging: enable verbose driver traces with environment variables to assist diagnosis:
-	 - `DISKIMAGE_DEBUG` — global debug output
-	 - `DISKIMAGE_ZFS_DEBUG` — ZFS-specific traces
-	 - `DISKIMAGE_BTRFS_DEBUG` — Btrfs-specific traces
+ - Debugging: the `integration` stress test's iteration count is configurable via
+	 the `DISKIMAGE_STRESS_ITERS` environment variable (see `integration/RESOURCES.md`).
 
 ZFS diagnostic commands
 ------------------------
@@ -168,55 +222,32 @@ cat <file_path>
 Example (run integration stress with ZFS/Btrfs debug enabled):
 
 ```bash
-DISKIMAGE_ZFS_DEBUG=1 DISKIMAGE_BTRFS_DEBUG=1 DISKIMAGE_STRESS_ITERS=1 \
+DISKIMAGE_STRESS_ITERS=1 \
 	go test ./integration -run TestStress_FileOperations_AllFS_AllPartitions -v
 ```
 
 See OpenZFS docs for low-level format details: https://openzfs.github.io/openzfs-docs/
 
-## Developer hooks
-
-Install the local pre-commit hook (recommended) to enable automatic
-documentation verification before commits:
-
-```bash
-mkdir -p .githooks
-cp scripts/verify-docs.sh .githooks/pre-commit
-chmod +x .githooks/pre-commit
-git config core.hooksPath .githooks
-```
-
-To bypass the check for an individual commit (not recommended):
-
-```bash
-SKIP_DOC_CHECK=1 git commit -m "..."
-# or
-git commit --no-verify -m "..."
-```
-
-## UDIF / DMG (macOS)
+## UDIF / DMG
 
 - DMG is an Apple UDIF container which can be created in several forms:
-	- **UDRW** (read-write): fixed-size at creation but resizable with `hdiutil`.
+	- **UDRW** (read-write): fixed-size at creation but resizable in-place.
 	- **UDSP** (sparseimage / sparsebundle): grows automatically as files are added.
 
-- This module exposes helpers to detect, convert and resize UDIF images on macOS:
+- This module exposes helpers, backed by the pure-Go
+	[`dmg`](https://github.com/go-diskimages/dmg) codec, to detect, convert and
+	resize UDIF images on **any platform** — no `hdiutil`/`plutil` required:
 	- **CreateOptions.DmgUDIFFormat**: when creating a DMG with `Create`, set this
 		field to `UDRW` or `UDSP` to request the underlying UDIF format (defaults to `UDRW`).
 	- `ConvertImageFormat(path, dstFormat string) error` — convert an image in-place
-		between UDIF formats (e.g. `UDRW` ↔ `UDSP`). Uses `hdiutil convert` on macOS.
+		between UDIF formats (e.g. `UDRW` ↔ `UDSP`).
 	- `ResizeImage(path string, newSizeBytes int64) error` — resize an image:
-		- For **UDRW** images on macOS the function uses `hdiutil resize`.
+		- For **UDIF** images, uses the pure-Go UDIF resize (`UDRW` only).
 		- For **UDSP** images the image must first be converted to `UDRW`.
-		- For raw files the function falls back to truncation.
-		- For the repository's mock DMG container the payload is unpacked, grown, and repacked.
+		- For raw files the function falls back to truncation via `Grow`.
 
 Notes and caveats:
 
-- All UDIF operations (detect/convert/resize) call macOS `hdiutil`/`plutil` and
-	are only supported when running on `darwin` and with `hdiutil` available.
-- `hdiutil convert` may create files with different suffixes; `ConvertImageFormat`
-	will choose the generated file and atomically replace the original.
 - Converting `UDSP` → `UDRW` is supported, but resizing `UDSP` in-place is not —
 	convert to `UDRW` first if you need to resize.
 
@@ -251,5 +282,5 @@ if err := diskimage.ResizeImage(opts.Path, 20*1024*1024); err != nil {
 Run the darwin-only integration tests to exercise these features locally:
 
 ```bash
-GOWORK=off go test ./pkg/go-diskimages/diskimage -run TestCreateConvertAndResizeUDIF -v
+GOWORK=off go test . -run TestCreateConvertAndResizeUDIF -v
 ```
