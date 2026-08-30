@@ -3,7 +3,7 @@ module github.com/go-diskimages/diskimage
 go 1.26.4
 
 require (
-	github.com/go-diskimages/dmg v0.0.0-20260622110325-12b2a5087c73
+	github.com/go-diskimages/dmg v0.0.0-20260830075540-a868a60da7e6
 	github.com/go-diskimages/qcow2 v0.1.1-0.20260615173836-3e5a0cea6d90
 	github.com/go-fde/apfs v0.0.0-20260620062418-22bb63627e03
 	github.com/go-fde/fde v0.0.0-20260622113821-f4774d256221
