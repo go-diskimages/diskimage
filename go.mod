@@ -8,7 +8,7 @@ require (
 	github.com/go-fde/apfs v0.0.0-20260620062418-22bb63627e03
 	github.com/go-fde/fde v0.0.0-20260622113821-f4774d256221
 	github.com/go-filesystems/apfs v0.0.0-20260622082644-466711e6bfba
-	github.com/go-filesystems/btrfs v0.0.0-20260622110025-c392c0094116
+	github.com/go-filesystems/btrfs v0.1.0
 	github.com/go-filesystems/exfat v0.0.0-20260622110028-8ffa80a3f536
 	github.com/go-filesystems/ext4 v0.0.0-20260622110046-9e9c8727ea5d
 	github.com/go-filesystems/fat32 v0.0.0-20260622110031-1d68bab25618

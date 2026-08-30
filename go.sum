@@ -25,6 +25,8 @@ github.com/go-filesystems/apfs v0.0.0-20260622082644-466711e6bfba h1:+jGiKYu+KNW
 github.com/go-filesystems/apfs v0.0.0-20260622082644-466711e6bfba/go.mod h1:Pr3JIJrdjhyVMMD+R6ARTPYbX/aAaznypjdcSysDn+A=
 github.com/go-filesystems/btrfs v0.0.0-20260622110025-c392c0094116 h1:QnzYCtO26ljvYa63mL7Q0LAffDrPbofJRy6VdRrtLXs=
 github.com/go-filesystems/btrfs v0.0.0-20260622110025-c392c0094116/go.mod h1:72XQNezKSsUFjmiAN6zgM1W8oIzu9eEHm0IWc7Ei1Oo=
+github.com/go-filesystems/btrfs v0.1.0 h1:RmRRqqMkEWd+EkyWx37gqcFnNkG0TLDwl2k02ulLTiE=
+github.com/go-filesystems/btrfs v0.1.0/go.mod h1:0MEOYKSW9Uh4ajeG9vDhVGOheTaNQOK74TJzAyvYCdg=
 github.com/go-filesystems/detect v0.0.0-20260622110044-5c3e56aa6ab7 h1:1GY9j3Pmh9HqUp5M2RRBFo6dvn0C+9aD6qztAztqm8s=
 github.com/go-filesystems/detect v0.0.0-20260622110044-5c3e56aa6ab7/go.mod h1:OCGE1O8l2Z41PODXWkuJOin83ooqHWh439jSpOGWb/Q=
 github.com/go-filesystems/detect/fat32reg v0.0.0-20260622114748-623b36231685 h1:QVsZalhjok0Hvwl8JKr7qwA7Dsb33LUb3iMs5WRhC9I=
