@@ -40,6 +40,6 @@ require (
 )
 
 require (
-	github.com/go-bootloaders/grub v0.0.0-20260622114902-50c2f0be8746
+	github.com/go-bootloaders/grub v0.0.0-20260830075351-9544d5cf68c4
 	golang.org/x/crypto v0.50.0
 )
