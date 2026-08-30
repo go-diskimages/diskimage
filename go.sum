@@ -35,6 +35,8 @@ github.com/go-filesystems/detect/fat32reg v0.0.0-20260622114748-623b36231685 h1:
 github.com/go-filesystems/detect/fat32reg v0.0.0-20260622114748-623b36231685/go.mod h1:OwExJSTfw5Qm1/dvFFbQIZLeuE1GKQLJTHr+f/Xz+HM=
 github.com/go-filesystems/exfat v0.0.0-20260622110028-8ffa80a3f536 h1:tanCotX+vEIvHnuJHPa4p/1Rwe7wNl9PH7fKw9+fKJE=
 github.com/go-filesystems/exfat v0.0.0-20260622110028-8ffa80a3f536/go.mod h1:Er+DDabvj+kI2x/cBb8LLlBeUhiWnNLs+wDyh+9C6C0=
+github.com/go-filesystems/exfat v0.1.0 h1:lRZcZyJRSJ0ybEw1rxtrgL0d4nzMHL05Sg7x0D1Qxuc=
+github.com/go-filesystems/exfat v0.1.0/go.mod h1:Er+DDabvj+kI2x/cBb8LLlBeUhiWnNLs+wDyh+9C6C0=
 github.com/go-filesystems/ext4 v0.0.0-20260622110046-9e9c8727ea5d h1:HYgechrYY9e87Xl+qT2iIoylEpzp1643Ycb1hidacLk=
 github.com/go-filesystems/ext4 v0.0.0-20260622110046-9e9c8727ea5d/go.mod h1:Iwpw3dvpRI8bikASYJNA+qplmeUG0oVN6+mfyEzvZ7M=
 github.com/go-filesystems/fat32 v0.0.0-20260622110031-1d68bab25618 h1:1q3c+HJXQAuAfNstfEYXzpKML3UB90hM5keebG8Zue4=
