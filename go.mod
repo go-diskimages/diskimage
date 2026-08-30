@@ -7,7 +7,7 @@ require (
 	github.com/go-diskimages/qcow2 v0.1.1-0.20260615173836-3e5a0cea6d90
 	github.com/go-fde/apfs v0.0.0-20260620062418-22bb63627e03
 	github.com/go-fde/fde v0.0.0-20260622113821-f4774d256221
-	github.com/go-filesystems/apfs v0.0.0-20260622082644-466711e6bfba
+	github.com/go-filesystems/apfs v0.1.0
 	github.com/go-filesystems/btrfs v0.0.0-20260622110025-c392c0094116
 	github.com/go-filesystems/exfat v0.0.0-20260622110028-8ffa80a3f536
 	github.com/go-filesystems/ext4 v0.0.0-20260622110046-9e9c8727ea5d
@@ -22,7 +22,7 @@ require (
 
 require (
 	github.com/anchore/go-lzo v0.1.0 // indirect
-	github.com/go-compressions/lzfse v0.1.1-0.20260620062248-135e417e8ead // indirect
+	github.com/go-compressions/lzfse v0.3.0 // indirect
 	github.com/go-encryptions/ccm v0.0.0-20260620055113-74db323be0b2 // indirect
 	github.com/go-encryptions/zfscrypt v0.0.0-20260622110329-4dc309d90ba1 // indirect
 	github.com/go-fde/clear v0.0.0-20260620062427-f7b9676e89b9 // indirect
