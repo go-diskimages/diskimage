@@ -9,6 +9,8 @@ github.com/go-diskimages/dmg v0.0.0-20260622110325-12b2a5087c73 h1:KyqZRBaoOxzzM
 github.com/go-diskimages/dmg v0.0.0-20260622110325-12b2a5087c73/go.mod h1:pkV3ZhdB13Gk84BZNLyEzjOS/WNIHbWQmW0TuGtJgu4=
 github.com/go-diskimages/qcow2 v0.1.1-0.20260615173836-3e5a0cea6d90 h1:nZc7T4b2ki/Fm9OXGHXV/Xd9Lb+S/Nf373cgmFxn/IE=
 github.com/go-diskimages/qcow2 v0.1.1-0.20260615173836-3e5a0cea6d90/go.mod h1:YMW0rJahslm7Nwhi4Ugs7gs5zQtoJkiXHC7luhpPLbI=
+github.com/go-diskimages/qcow2 v0.1.1-0.20260830075538-379d47b99907 h1:mCwsVr7Wx0lcfpsANHs0gCAMdsQ+9VQBRQr3ypcWM6s=
+github.com/go-diskimages/qcow2 v0.1.1-0.20260830075538-379d47b99907/go.mod h1:PTkIcQbZfUGj56+zstlHz0BmkMEzB5b4zyUBscK2wXE=
 github.com/go-encryptions/ccm v0.0.0-20260620055113-74db323be0b2 h1:Gky3CPkbtx6TdLJKw/liSsljOz561HDE0gGXoABDObI=
 github.com/go-encryptions/ccm v0.0.0-20260620055113-74db323be0b2/go.mod h1:0XHNptBliXAeC9Ikl/maTnmj6+VWeJ5vZElyTprdYWI=
 github.com/go-encryptions/zfscrypt v0.0.0-20260622110329-4dc309d90ba1 h1:wvb5iMDteCIzjfmaS8WAg/2joF6+F+AW9Lapr0MVJtA=
