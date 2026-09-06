@@ -3,7 +3,7 @@ module github.com/go-diskimages/diskimage
 go 1.26.4
 
 require (
-	github.com/go-diskimages/dmg v0.0.0-20260622110325-12b2a5087c73
+	github.com/go-diskimages/dmg v0.0.0-20260906113617-2b1992177b6a
 	github.com/go-diskimages/qcow2 v0.1.1-0.20260615173836-3e5a0cea6d90
 	github.com/go-fde/apfs v0.0.0-20260806070302-251df306364c
 	github.com/go-fde/fde v0.0.0-20260622113821-f4774d256221
@@ -29,7 +29,6 @@ require (
 	github.com/go-fde/clear v0.0.0-20260620062427-f7b9676e89b9 // indirect
 	github.com/go-fde/luks v0.0.0-20260620062443-aca347e9cc1b // indirect
 	github.com/go-filesystems/detect v0.0.0-20260622110044-5c3e56aa6ab7 // indirect
-	github.com/go-filesystems/detect/fat32reg v0.0.0-20260622114748-623b36231685 // indirect
 	github.com/go-tpm2/common v0.1.0 // indirect
 	github.com/go-tpm2/efitcg2 v0.2.0 // indirect
 	github.com/go-volumes/gpt v0.0.0-20260622100756-3721db1fbd05 // indirect
@@ -42,5 +41,6 @@ require (
 
 require (
 	github.com/go-bootloaders/grub v0.0.0-20260830075351-9544d5cf68c4
+	github.com/go-filesystems/hfsplus v0.1.0
 	golang.org/x/crypto v0.50.0
 )
