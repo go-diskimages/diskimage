@@ -12,6 +12,7 @@ import (
 	filesystem_exfat "github.com/go-filesystems/exfat"
 	filesystem_ext4 "github.com/go-filesystems/ext4"
 	filesystem_fat32 "github.com/go-filesystems/fat32"
+	filesystem_hfsplus "github.com/go-filesystems/hfsplus"
 	filesystem_ntfs "github.com/go-filesystems/ntfs"
 	filesystem_xfs "github.com/go-filesystems/xfs"
 	filesystem_zfs "github.com/go-filesystems/zfs"
@@ -34,15 +35,16 @@ const (
 	PartMBR  PartitionScheme = "mbr"
 	PartGPT  PartitionScheme = "gpt"
 
-	FSNone  FilesystemType = "none"
-	FSExt4  FilesystemType = "ext4"
-	FSFat32 FilesystemType = "fat32"
-	FSBtrfs FilesystemType = "btrfs"
-	FSXfs   FilesystemType = "xfs"
-	FSZfs   FilesystemType = "zfs"
-	FSExFAT FilesystemType = "exfat"
-	FSNTFS  FilesystemType = "ntfs"
-	FSApfs  FilesystemType = "apfs"
+	FSNone    FilesystemType = "none"
+	FSExt4    FilesystemType = "ext4"
+	FSFat32   FilesystemType = "fat32"
+	FSBtrfs   FilesystemType = "btrfs"
+	FSXfs     FilesystemType = "xfs"
+	FSZfs     FilesystemType = "zfs"
+	FSExFAT   FilesystemType = "exfat"
+	FSNTFS    FilesystemType = "ntfs"
+	FSApfs    FilesystemType = "apfs"
+	FSHfsPlus FilesystemType = "hfsplus"
 )
 
 var (
@@ -51,11 +53,16 @@ var (
 	// ValidPartSchemes lists accepted --part values.
 	ValidPartSchemes = []string{"none", "mbr", "gpt"}
 	// ValidFilesystems lists accepted --filesystem values.
-	ValidFilesystems = []string{"none", "ext4", "fat32", "btrfs", "xfs", "zfs", "exfat", "ntfs", "apfs"}
+	ValidFilesystems = []string{"none", "ext4", "fat32", "btrfs", "xfs", "zfs", "exfat", "ntfs", "apfs", "hfsplus"}
 	// DmgSupportedFilesystems is the set of filesystems that may be embedded
 	// in a DMG image. Only filesystems natively understood by macOS are
-	// allowed: APFS (with optional FileVault FDE), FAT32 and exFAT.
-	DmgSupportedFilesystems = []string{"none", "apfs", "fat32", "exfat"}
+	// allowed: APFS (with optional FileVault FDE), HFS+, FAT32 and exFAT.
+	//
+	// HFS+ is what a distribution .dmg wants. It compresses far better under
+	// UDZO than APFS, and the Finder metadata that gives such an image its
+	// background picture and icon positions keys on an "H+" volume — the
+	// alias inside the .DS_Store record names the filesystem type.
+	DmgSupportedFilesystems = []string{"none", "apfs", "hfsplus", "fat32", "exfat"}
 )
 
 // IsDmgSupportedFilesystem reports whether fs is allowed inside a DMG image.
@@ -83,8 +90,11 @@ type CreateOptions struct {
 	Filesystem FilesystemType
 	// Label is passed to the filesystem formatter as volume label / pool name.
 	Label string
-	// DmgUDIFFormat, when creating a DMG on darwin, selects the UDIF format
-	// to use (e.g. "UDRW" or "UDSP"). If empty defaults to "UDRW".
+	// DmgUDIFFormat selects the UDIF format the image is written in — "UDRW"
+	// (raw, the default), "UDZO" (zlib), or "UDSP" (sparse, zero runs
+	// elided). A distribution image wants UDZO: an HFS+ volume that is mostly
+	// empty compresses to a small fraction of its size, and macOS mounts it
+	// read-only, which is what a downloaded .dmg should be.
 	DmgUDIFFormat string
 	// DmgPassphrase, when non-empty and Format=FormatDmg with Filesystem=FSApfs,
 	// requests a FileVault-encrypted (FDE) APFS DMG. The passphrase is fed to
@@ -153,10 +163,34 @@ func Create(opts CreateOptions) error {
 		if opts.Filesystem == FSApfs && opts.DmgUDIFFormat == "" {
 			return nil
 		}
-		return disk_dmg.WrapRaw(opts.Path)
+		if err := disk_dmg.WrapRaw(opts.Path); err != nil {
+			return err
+		}
+		return convertDmgFormat(opts.Path, opts.DmgUDIFFormat)
 	default:
 		return fmt.Errorf("diskimage: unsupported format %q (supported: %v)", opts.Format, ValidFormats)
 	}
+}
+
+// convertDmgFormat rewrites the image in the requested UDIF format.
+//
+// WrapRaw always produces UDRW, so without this DmgUDIFFormat was a field
+// that documented a choice and made none: asking for UDZO returned a raw
+// image of exactly the volume's size.
+func convertDmgFormat(path, format string) error {
+	if format == "" || format == "UDRW" {
+		return nil
+	}
+	tmp := path + ".converting"
+	if err := disk_dmg.ConvertUDIF(path, tmp, format); err != nil {
+		os.Remove(tmp)
+		return fmt.Errorf("diskimage: convert to %s: %w", format, err)
+	}
+	if err := os.Rename(tmp, path); err != nil {
+		os.Remove(tmp)
+		return fmt.Errorf("diskimage: replace %s: %w", path, err)
+	}
+	return nil
 }
 
 // createEncryptedApfsDmg writes a FileVault-encrypted APFS NX container at
@@ -331,6 +365,12 @@ func formatFilesystem(path string, sizeBytes int64, fs FilesystemType, label str
 			return fmt.Errorf("diskimage: apfs init: %w", err)
 		}
 		return filesystem_apfs.FormatContainer(path, sizeBytes, label)
+	case FSHfsPlus:
+		fs, err := filesystem_hfsplus.Format(path, sizeBytes, filesystem_hfsplus.FormatConfig{Label: label})
+		if err != nil {
+			return err
+		}
+		return fs.Close()
 	default:
 		return fmt.Errorf("diskimage: unsupported filesystem %q (supported: %v)", fs, ValidFilesystems)
 	}
