@@ -26,12 +26,11 @@ type BlockDevice interface {
 // The format is detected automatically from the file header:
 //
 //   - QCOW2 → reads/writes go through the QCOW2 copy-on-write layer.
-//   - UDIF DMG (UDRW only) → reads/writes hit the uncompressed data
-//     fork in place; the koly trailer's CRC-32 checksums are
-//     refreshed on Close. Non-UDRW subformats are refused — the
-//     compressed variants need an unpack-pack strategy that has a
-//     surprise Close cost (see dmg.UnpackToTemp / PackFromTemp if
-//     you want it explicitly).
+//   - UDIF DMG whose data fork is uncompressed → reads/writes hit it
+//     in place; the koly trailer's CRC-32 checksums are refreshed on
+//     Close. Compressed and sparse images are refused — they need an
+//     unpack-pack strategy that has a surprise Close cost (see
+//     dmg.UnpackToTemp / PackFromTemp if you want it explicitly).
 //   - everything else → treated as a raw image; the device reads
 //     and writes the file directly.
 func OpenBlockDevice(path string) (BlockDevice, error) {
