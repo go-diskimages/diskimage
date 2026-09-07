@@ -163,6 +163,12 @@ func Create(opts CreateOptions) error {
 		if opts.Filesystem == FSApfs && opts.DmgUDIFFormat == "" {
 			return nil
 		}
+		// "UDRW" asks for the raw image, so there is nothing to wrap:
+		// hdiutil writes no container for that format, and an image WITH
+		// one is mounted read-only however its trailer is stamped.
+		if opts.DmgUDIFFormat == "UDRW" {
+			return nil
+		}
 		if err := disk_dmg.WrapRaw(opts.Path); err != nil {
 			return err
 		}
@@ -178,7 +184,7 @@ func Create(opts CreateOptions) error {
 // that documented a choice and made none: asking for UDZO returned a raw
 // image of exactly the volume's size.
 func convertDmgFormat(path, format string) error {
-	if format == "" || format == "UDRW" {
+	if format == "" {
 		return nil
 	}
 	tmp := path + ".converting"

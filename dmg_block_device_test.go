@@ -1,6 +1,7 @@
 package diskimage
 
 import (
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -32,12 +33,19 @@ func TestOpenBlockDevice_UDRW_RoundTrip(t *testing.T) {
 	if err := disk_dmg.WrapRaw(dmgPath); err != nil {
 		t.Fatalf("WrapRaw: %v", err)
 	}
+	// WrapRaw puts the sectors in a container, uncompressed. macOS mounts
+	// that read-only and calls it UDRO -- UDRW is the raw image, which has
+	// no container at all -- but the sectors are still one-to-one in the
+	// file, which is what the block device below needs.
 	variant, err := disk_dmg.DetectUDIFFormat(dmgPath)
 	if err != nil {
 		t.Fatalf("DetectUDIFFormat: %v", err)
 	}
-	if variant != "UDRW" {
-		t.Fatalf("WrapRaw should produce UDRW, got %s", variant)
+	if variant != "UDRO" {
+		t.Fatalf("WrapRaw should produce UDRO, got %s", variant)
+	}
+	if ok, err := disk_dmg.InPlaceWritable(dmgPath); err != nil || !ok {
+		t.Fatalf("InPlaceWritable = %v, %v; want true", ok, err)
 	}
 
 	// Round-trip the label via the diskimage public API.
@@ -66,7 +74,7 @@ func TestOpenBlockDevice_UDIF_RejectsCompressed(t *testing.T) {
 	if err := Create(CreateOptions{Path: rawPath, SizeBytes: 4 << 20, Partition: PartMBR, Filesystem: FSExt4}); err != nil {
 		t.Fatalf("Create raw: %v", err)
 	}
-	// WrapRaw → UDRW first; ConvertUDIF requires a UDIF source.
+	// A container first, so the source has one to convert from.
 	udrwPath := filepath.Join(tmp, "udrw.dmg")
 	if err := copyFile(rawPath, udrwPath); err != nil {
 		t.Fatalf("copy raw → udrw: %v", err)
@@ -82,8 +90,11 @@ func TestOpenBlockDevice_UDIF_RejectsCompressed(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error opening compressed UDIF in-place")
 	}
-	if !strings.Contains(err.Error(), "UDRW") {
-		t.Errorf("error should mention UDRW requirement, got: %v", err)
+	if !errors.Is(err, errUnsupportedDMGVariant) {
+		t.Errorf("error should be the unsupported-variant one, got: %v", err)
+	}
+	if !strings.Contains(err.Error(), "UDZO") {
+		t.Errorf("error should name the format it was given, got: %v", err)
 	}
 }
 

@@ -1,6 +1,7 @@
 package diskimage
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -8,6 +9,8 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	disk_dmg "github.com/go-diskimages/dmg"
 )
 
 func TestHfsPlusIsAcceptedInADmg(t *testing.T) {
@@ -27,7 +30,7 @@ func TestHfsPlusIsAcceptedInADmg(t *testing.T) {
 
 // DmgUDIFFormat documented a choice and made none: WrapRaw always writes
 // UDRW, so asking for UDZO returned a raw image the size of the volume.
-func TestConvertDmgFormatIsANoOpForRaw(t *testing.T) {
+func TestConvertDmgFormatIsANoOpWithoutAFormat(t *testing.T) {
 	dir := t.TempDir()
 	p := filepath.Join(dir, "x.dmg")
 	if err := os.WriteFile(p, []byte("not a dmg"), 0o600); err != nil {
@@ -37,10 +40,8 @@ func TestConvertDmgFormatIsANoOpForRaw(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, f := range []string{"", "UDRW"} {
-		if err := convertDmgFormat(p, f); err != nil {
-			t.Errorf("convertDmgFormat(%q) = %v, want nil", f, err)
-		}
+	if err := convertDmgFormat(p, ""); err != nil {
+		t.Errorf("convertDmgFormat(%q) = %v, want nil", "", err)
 	}
 	after, err := os.ReadFile(p)
 	if err != nil {
@@ -48,6 +49,36 @@ func TestConvertDmgFormatIsANoOpForRaw(t *testing.T) {
 	}
 	if string(before) != string(after) {
 		t.Error("a no-op conversion rewrote the file")
+	}
+	// "UDRW" no longer reaches here: it is the raw image, so Create stops
+	// before wrapping. Asked to convert TO it, this function tries, and
+	// says what it could not read rather than pretending it worked.
+	if err := convertDmgFormat(p, "UDRW"); err == nil {
+		t.Error("convertDmgFormat accepted a file that is not an image")
+	}
+}
+
+// A DMG asked for as UDRW is the raw volume: no container, and the size of
+// the volume exactly. Anything with a koly trailer is mounted read-only.
+func TestCreateUDRWLeavesTheRawImage(t *testing.T) {
+	p := filepath.Join(t.TempDir(), "rw.dmg")
+	const size = 8 << 20
+	if err := Create(CreateOptions{Path: p, SizeBytes: size, Format: FormatDmg,
+		Filesystem: FSHfsPlus, Label: "RW", DmgUDIFFormat: "UDRW"}); err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	if disk_dmg.IsUDIF(p) {
+		t.Error("a UDRW image was wrapped in a container")
+	}
+	info, err := os.Stat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if info.Size() != size {
+		t.Errorf("the image is %d bytes, want %d", info.Size(), size)
+	}
+	if ok, err := disk_dmg.InPlaceWritable(p); err != nil || !ok {
+		t.Errorf("InPlaceWritable = %v, %v; want true", ok, err)
 	}
 }
 
@@ -123,5 +154,57 @@ func TestHfsPlusUDZODmgMounts(t *testing.T) {
 	})
 	if !strings.Contains(string(out), "/Volumes/") {
 		t.Errorf("attached but did not mount:\n%s", out)
+	}
+}
+
+// The claim this vocabulary change rests on, put to Apple's own tool: an
+// image asked for as UDRW mounts READ/WRITE. It is the only check here that
+// would catch a return to wrapping one in a container, which macOS mounts
+// read-only whatever the trailer says.
+//
+// The volume name is unique per run and the detach names the mount point it
+// attached, because a broad match once ejected volumes belonging to another
+// session on this machine.
+func TestDarwinUDRWMountsWritable(t *testing.T) {
+	if runtime.GOOS != "darwin" {
+		t.Skip("hdiutil is macOS-only")
+	}
+	if _, err := exec.LookPath("hdiutil"); err != nil {
+		t.Skip("hdiutil is not installed")
+	}
+	label := fmt.Sprintf("DIRW%d", os.Getpid())
+	p := filepath.Join(t.TempDir(), "rw.dmg")
+	if err := Create(CreateOptions{Path: p, SizeBytes: 8 << 20, Format: FormatDmg,
+		Filesystem: FSHfsPlus, Label: label, DmgUDIFFormat: "UDRW"}); err != nil {
+		t.Fatalf("Create: %v", err)
+	}
+	info, err := exec.Command("hdiutil", "imageinfo", p).CombinedOutput()
+	if err != nil {
+		t.Fatalf("hdiutil imageinfo: %v\n%s", err, info)
+	}
+	if !strings.Contains(string(info), "Format: UDRW") {
+		t.Errorf("hdiutil does not call this UDRW:\n%s", info)
+	}
+
+	mount := "/Volumes/" + label
+	if out, err := exec.Command("hdiutil", "attach", p, "-noverify").CombinedOutput(); err != nil {
+		t.Fatalf("hdiutil attach: %v\n%s", err, out)
+	}
+	t.Cleanup(func() {
+		if out, err := exec.Command("hdiutil", "detach", mount).CombinedOutput(); err != nil {
+			t.Logf("detaching %s: %v\n%s", mount, err, out)
+		}
+	})
+	mounted, err := exec.Command("mount").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, line := range strings.Split(string(mounted), "\n") {
+		if strings.Contains(line, mount) && strings.Contains(line, "read-only") {
+			t.Errorf("mounted read-only: %s", line)
+		}
+	}
+	if err := os.WriteFile(filepath.Join(mount, "written-by-the-test"), []byte("ok"), 0o644); err != nil {
+		t.Errorf("writing to the mounted volume: %v", err)
 	}
 }

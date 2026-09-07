@@ -30,10 +30,13 @@ func TestCreateConvertAndResizeUDIF(t *testing.T) {
 		t.Fatalf("Create failed: %v", err)
 	}
 
-	// Ensure it's UDRW
-	f, err := disk_dmg.DetectUDIFFormat(img)
-	if err != nil || f != "UDRW" {
-		t.Fatalf("expected UDRW, detect returned %q err %v", f, err)
+	// hdiutil's UDRW is the RAW image: no container, so there is no format
+	// to detect. That is the shape macOS mounts read/write.
+	if disk_dmg.IsUDIF(img) {
+		t.Fatal("hdiutil -format UDRW produced a UDIF container")
+	}
+	if ok, err := disk_dmg.InPlaceWritable(img); err != nil || !ok {
+		t.Fatalf("InPlaceWritable on a raw image = %v, %v; want true", ok, err)
 	}
 
 	// Convert to UDSP
@@ -45,13 +48,12 @@ func TestCreateConvertAndResizeUDIF(t *testing.T) {
 		t.Fatalf("expected UDSP, detect returned %q err %v", f2, err)
 	}
 
-	// Convert back to UDRW
+	// Convert back to UDRW, which is to say back to the raw image.
 	if err := ConvertImageFormat(img, "UDRW"); err != nil {
 		t.Fatalf("Convert to UDRW failed: %v", err)
 	}
-	f3, err := disk_dmg.DetectUDIFFormat(img)
-	if err != nil || f3 != "UDRW" {
-		t.Fatalf("expected UDRW, detect returned %q err %v", f3, err)
+	if disk_dmg.IsUDIF(img) {
+		t.Fatal("a UDRW conversion left a container behind")
 	}
 
 	// Resize to 20MB
