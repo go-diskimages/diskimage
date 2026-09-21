@@ -9,7 +9,6 @@ package diskimage
 import (
 	"bytes"
 	"crypto/aes"
-	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/binary"
@@ -57,7 +56,13 @@ func afDiffuse(block []byte) {
 		if chunk > digestLen {
 			chunk = digestLen
 		}
-		h := hmac.New(sha256.New, counter)
+		// ⛔ A PLAIN hash of BE32(i) || sub-block, not HMAC. cryptsetup's
+		// diffuse() in lib/luks1/af.c is keyless, and this fixture wrote HMAC
+		// for as long as go-fde/luks read it back the same wrong way. The two
+		// agreed, so the round trip passed and neither was tested against a
+		// container cryptsetup had written.
+		h := sha256.New()
+		h.Write(counter)
 		h.Write(block[pos : pos+chunk])
 		sum := h.Sum(nil)
 		copy(block[pos:pos+chunk], sum[:chunk])
