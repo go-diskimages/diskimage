@@ -30,9 +30,15 @@ func TestDiskimageCreate_then_hdiutilRead(t *testing.T) {
 		t.Skip("skipping on non-darwin")
 	}
 	if _, err := exec.LookPath("hdiutil"); err != nil {
+		if requireHdiutil() {
+			t.Fatalf("DISKIMAGE_REQUIRE_HDIUTIL is set but hdiutil is not present: %v", err)
+		}
 		t.Skip("hdiutil not available")
 	}
 	if _, err := exec.LookPath("diskutil"); err != nil {
+		if requireHdiutil() {
+			t.Fatalf("DISKIMAGE_REQUIRE_HDIUTIL is set but diskutil is not present: %v", err)
+		}
 		t.Skip("diskutil not available")
 	}
 
@@ -121,6 +127,9 @@ func TestHdiutilCreate_then_diskimageRead(t *testing.T) {
 		t.Skip("skipping on non-darwin")
 	}
 	if _, err := exec.LookPath("hdiutil"); err != nil {
+		if requireHdiutil() {
+			t.Fatalf("DISKIMAGE_REQUIRE_HDIUTIL is set but hdiutil is not present: %v", err)
+		}
 		t.Skip("hdiutil not available")
 	}
 
@@ -148,6 +157,9 @@ func TestHdiutilCreate_then_diskimageRead(t *testing.T) {
 	attach := exec.Command("hdiutil", "attach", "-mountpoint", mnt, "-nobrowse", "-noautoopen", "-readwrite", img)
 	out, err = attach.CombinedOutput()
 	if err != nil {
+		if requireHdiutil() {
+			t.Fatalf("hdiutil attach failed: %v: %s", err, string(out))
+		}
 		t.Skipf("hdiutil attach failed; skipping integration: %v: %s", err, string(out))
 	}
 	dfout, _ := exec.Command("df", "-P", mnt).CombinedOutput()
@@ -183,6 +195,9 @@ func TestHdiutilCreate_then_diskimageWrite(t *testing.T) {
 		t.Skip("skipping on non-darwin")
 	}
 	if _, err := exec.LookPath("hdiutil"); err != nil {
+		if requireHdiutil() {
+			t.Fatalf("DISKIMAGE_REQUIRE_HDIUTIL is set but hdiutil is not present: %v", err)
+		}
 		t.Skip("hdiutil not available")
 	}
 
@@ -214,6 +229,9 @@ func TestHdiutilCreate_then_diskimageWrite(t *testing.T) {
 	attach := exec.Command("hdiutil", "attach", "-mountpoint", mnt, "-nobrowse", "-noautoopen", "-readwrite", img)
 	out, err = attach.CombinedOutput()
 	if err != nil {
+		if requireHdiutil() {
+			t.Fatalf("hdiutil attach failed: %v: %s", err, string(out))
+		}
 		t.Skipf("hdiutil attach failed; skipping integration: %v: %s", err, string(out))
 	}
 	dfout, _ := exec.Command("df", "-P", mnt).CombinedOutput()
@@ -234,3 +252,20 @@ func TestHdiutilCreate_then_diskimageWrite(t *testing.T) {
 		t.Fatalf("content mismatch: got %q want %q", string(got), string(want))
 	}
 }
+
+// requireHdiutil reports whether this lane promised Apple's tools would be
+// there. DISKIMAGE_REQUIRE_HDIUTIL=1 is set by the darwin lane.
+//
+// It covers the tool being ABSENT and the tool FAILING -- "hdiutil attach
+// failed" on a machine that has hdiutil is a broken lane, and a failure of the
+// judge must never read as a pass for the subject.
+//
+// It deliberately does NOT cover the skip in
+// TestDiskimageCreate_then_hdiutilRead where apfs.kext declines to auto-mount
+// the inner volume. That one is a KNOWN, TRACKED gap in what this package
+// writes (COMPAT.md cell B-2, iteration D-8), stated in the test's own
+// comment. Turning a documented limitation into a failure would not measure
+// anything new; it would only make the lane red about something already
+// written down. A stale gate and an accurate one look alike from outside, and
+// the difference is whether the reason still holds -- here it does.
+func requireHdiutil() bool { return os.Getenv("DISKIMAGE_REQUIRE_HDIUTIL") != "" }
