@@ -45,6 +45,36 @@ jobs:
           awk -v c="$total" 'BEGIN { if (c+0 < 60.0) { print "coverage below 60.0%"; exit 1 } }'
 
   # Emulated jobs prove 6-arch buildability: they cross-compile test binaries
+  # Apple's own tools as the judge for the APFS/DMG interop, in the only place
+  # they exist. Two of the three tests in
+  # apfs_dmg_hdiutil_integration_test.go are real judges that pass today --
+  # hdiutil writes an image and this package reads it, then writes INTO it and
+  # hdiutil reads it back -- and neither had ever run, because nothing in this
+  # repository was a Mac.
+  #
+  # `hdiutil attach` on an image file needs no privilege.
+  #
+  # The third test stays skipped and is meant to: apfs.kext declines to
+  # auto-mount the volume this package writes, a known gap tracked as COMPAT.md
+  # cell B-2 / iteration D-8. DISKIMAGE_REQUIRE_HDIUTIL covers the tools being
+  # absent or failing, not that.
+  #
+  # A separate job rather than a leg of `native`: this one judges, it does not
+  # feed the coverage floor.
+  darwin:
+    name: hdiutil + diskutil, Apple's own readers
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: stable
+      - name: Test, with Apple's tools required
+        env:
+          # A skip here would look exactly like a pass.
+          DISKIMAGE_REQUIRE_HDIUTIL: "1"
+        run: CGO_ENABLED=0 go test ./...
+
   # for EVERY package (including `integration`), so the whole repo is shown to
   # build on each arch. They then run ONLY the non-integration test binaries
   # under QEMU. The integration package is excluded from execution because it
