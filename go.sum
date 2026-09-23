@@ -5,8 +5,8 @@ github.com/go-bootloaders/grub v0.0.0-20260912202758-ef4cd69124f3 h1:QNij3b+98My
 github.com/go-bootloaders/grub v0.0.0-20260912202758-ef4cd69124f3/go.mod h1:23Byue98Uqpk7l2oL0OrqJAGYPdyN0lWBJ5MXXunEto=
 github.com/go-compressions/lzfse v0.3.0 h1:slxIjY9HeG2llJSoXTwTnQ+u/iKMbr2WHUwaNAl/2yI=
 github.com/go-compressions/lzfse v0.3.0/go.mod h1:geg9IRFbMNHPgbm8xNwF3AnYTsldTX9YptJ0DOWzYv8=
-github.com/go-diskimages/dmg v0.0.0-20260907182204-944939792f30 h1:w2y5neHvdrJwl+Jd8VDyEy5CanFTWabN8ux1i643+M0=
-github.com/go-diskimages/dmg v0.0.0-20260907182204-944939792f30/go.mod h1:jS95GgaHgUTgVULS2P6Nfe+Sr5pDCYiYA2OjHMCSXnk=
+github.com/go-diskimages/dmg v0.0.0-20260921134959-95ee79cb02f5 h1:huNvW4ogyq5hMpUj/HaigEuEdpRb9z8NRbkhEMgdfhk=
+github.com/go-diskimages/dmg v0.0.0-20260921134959-95ee79cb02f5/go.mod h1:jS95GgaHgUTgVULS2P6Nfe+Sr5pDCYiYA2OjHMCSXnk=
 github.com/go-diskimages/qcow2 v0.1.1-0.20260830123235-0fc975dd1441 h1:nqhRikjPteXC4NW/KEtCOmnNktkx94ccrc8QQIKGDpc=
 github.com/go-diskimages/qcow2 v0.1.1-0.20260830123235-0fc975dd1441/go.mod h1:PTkIcQbZfUGj56+zstlHz0BmkMEzB5b4zyUBscK2wXE=
 github.com/go-encryptions/ccm v0.0.0-20260620055113-74db323be0b2 h1:Gky3CPkbtx6TdLJKw/liSsljOz561HDE0gGXoABDObI=
@@ -19,10 +19,10 @@ github.com/go-fde/apfs v0.0.0-20260912170739-6acb57fc9eb0 h1:1u/1q4Tis5FuK3VoCuJ
 github.com/go-fde/apfs v0.0.0-20260912170739-6acb57fc9eb0/go.mod h1:WnN6Vu9BDEikrH60SC1n7X1KO+XSVHE66heUF2rNXKc=
 github.com/go-fde/clear v0.0.0-20260830121017-65feb652d923 h1:EWfgd1d0Lucwamk9sDe5q89z88ImBNJvtCFxqO4iod0=
 github.com/go-fde/clear v0.0.0-20260830121017-65feb652d923/go.mod h1:Io03ZU+0QyLJ3joiQH8H0enxU1DOBoKsptfKGZGlv34=
-github.com/go-fde/fde v0.0.0-20260914192132-fb2e27f8c817 h1:qomNX0aIx0LIRoReJpByBygGw9xIIHUwhKdk3I+SgH4=
-github.com/go-fde/fde v0.0.0-20260914192132-fb2e27f8c817/go.mod h1:PEonJCZkjCH/d9kdYF0UEVOJ0x0pP0aLe53ZoYhGyHs=
-github.com/go-fde/luks v0.0.0-20260912170836-2b2fb274cfc5 h1:XZ0JOK5BXoVZg8Pjw8qghdkLaHrwqshaIQaBFaftuOI=
-github.com/go-fde/luks v0.0.0-20260912170836-2b2fb274cfc5/go.mod h1:YPirWRCIKZ28EJ3I4VDaMyjbSTrms7bV44AiBq5Zzx0=
+github.com/go-fde/fde v0.0.0-20260922180543-f8f25a0a3e74 h1:7d/a73GHGZXf1gF/gHlz5XcNtYWnGbfPgrvTSrwGVaM=
+github.com/go-fde/fde v0.0.0-20260922180543-f8f25a0a3e74/go.mod h1:XvamJmgATTFKfFNP0GLFr5QTSr+pQPNEz3KRB9iyRE4=
+github.com/go-fde/luks v0.0.0-20260921110756-e50dea9f73fb h1:tJlj5+utzVg5TIBsjTq9PfsYiJJFgvHQEvLoEvBmTqo=
+github.com/go-fde/luks v0.0.0-20260921110756-e50dea9f73fb/go.mod h1:YPirWRCIKZ28EJ3I4VDaMyjbSTrms7bV44AiBq5Zzx0=
 github.com/go-filesystems/apfs v0.1.0 h1:xuYtUhavWDAK7cq0+h4x2xh83szK0zmf/gBok1iFDlg=
 github.com/go-filesystems/apfs v0.1.0/go.mod h1:S3lJ8g64Km7ggJYkEHK3mrg0VQ9Vum2ogMY+J3zrdH0=
 github.com/go-filesystems/btrfs v0.1.0 h1:RmRRqqMkEWd+EkyWx37gqcFnNkG0TLDwl2k02ulLTiE=
