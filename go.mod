@@ -3,7 +3,7 @@ module github.com/go-diskimages/diskimage
 go 1.26.4
 
 require (
-	github.com/go-diskimages/dmg v0.0.0-20260921134959-95ee79cb02f5
+	github.com/go-diskimages/dmg v0.3.0
 	github.com/go-diskimages/qcow2 v0.1.1-0.20260830123235-0fc975dd1441
 	github.com/go-fde/apfs v0.0.0-20260912170739-6acb57fc9eb0
 	github.com/go-fde/fde v0.0.0-20260922180543-f8f25a0a3e74
@@ -11,7 +11,7 @@ require (
 	github.com/go-filesystems/btrfs v0.1.0
 	github.com/go-filesystems/exfat v0.3.0
 	github.com/go-filesystems/ext4 v0.2.0
-	github.com/go-filesystems/fat32 v0.3.0
+	github.com/go-filesystems/fat32 v0.4.0
 	github.com/go-filesystems/interface v0.3.0
 	github.com/go-filesystems/ntfs v0.1.0
 	github.com/go-filesystems/uefi v0.1.0
@@ -22,6 +22,7 @@ require (
 
 require (
 	github.com/anchore/go-lzo v0.1.0 // indirect
+	github.com/go-compressions/adc v0.1.0 // indirect
 	github.com/go-compressions/lzfse v0.3.0 // indirect
 	github.com/go-encryptions/ccm v0.0.0-20260620055113-74db323be0b2 // indirect
 	github.com/go-encryptions/xts v0.0.0-20260911133109-312298263872 // indirect
@@ -40,7 +41,7 @@ require (
 )
 
 require (
-	github.com/go-bootloaders/grub v0.0.0-20260912202758-ef4cd69124f3
-	github.com/go-filesystems/hfsplus v0.2.0
+	github.com/go-bootloaders/grub v0.0.0-20260924212607-7ab0a1929552
+	github.com/go-filesystems/hfsplus v0.3.0
 	golang.org/x/crypto v0.57.0
 )

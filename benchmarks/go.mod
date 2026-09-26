@@ -5,7 +5,7 @@ module github.com/go-diskimages/diskimage-benchmarks
 go 1.26.4
 
 require (
-	github.com/go-diskimages/dmg v0.0.0-20260921134959-95ee79cb02f5
+	github.com/go-diskimages/dmg v0.3.0
 	github.com/go-diskimages/qcow2 v0.1.0
 	github.com/go-diskimages/raw v0.0.0-20260830120736-0ea897baf8a4
 )
