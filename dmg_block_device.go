@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"hash/crc32"
 	"io"
 	"os"
 
@@ -83,6 +82,7 @@ func openDMGBlockDevice(path string) (BlockDevice, error) {
 
 	return &udifRawBlockDevice{
 		f:              f,
+		path:           path,
 		kolyOffset:     kolyOff,
 		kolyBuf:        kolyBuf,
 		dataForkLength: int64(dataForkLength),
@@ -101,6 +101,7 @@ const (
 // anything was written.
 type udifRawBlockDevice struct {
 	f              *os.File
+	path           string
 	kolyOffset     int64
 	kolyBuf        []byte // raw koly trailer bytes (512)
 	dataForkLength int64
@@ -147,47 +148,22 @@ func (d *udifRawBlockDevice) Sync() error { return d.f.Sync() }
 // blkx checksum; that's an acceptable trade-off for not having to
 // re-encode the XML on every Close.
 func (d *udifRawBlockDevice) Close() error {
-	if d.dirty {
-		if err := d.refreshChecksums(); err != nil {
-			d.f.Close()
-			return err
-		}
-		if err := d.f.Sync(); err != nil {
-			d.f.Close()
-			return err
-		}
+	if !d.dirty {
+		return d.f.Close()
 	}
-	return d.f.Close()
-}
-
-func (d *udifRawBlockDevice) refreshChecksums() error {
-	crc := crc32.NewIEEE()
-	const bufSize = 1 << 20
-	buf := make([]byte, bufSize)
-	off := int64(0)
-	for off < d.dataForkLength {
-		want := int64(bufSize)
-		if rem := d.dataForkLength - off; rem < want {
-			want = rem
-		}
-		n, err := d.f.ReadAt(buf[:want], off)
-		if err != nil && err != io.EOF {
-			return fmt.Errorf("dmg: read for checksum: %w", err)
-		}
-		crc.Write(buf[:n])
-		off += int64(n)
-		if int64(n) < want {
-			return fmt.Errorf("dmg: short read at off=%d", off)
-		}
+	// The checksums are refreshed AFTER this handle is closed, because
+	// disk_dmg.RefreshChecksums opens the path itself -- and because it must
+	// read back what was actually written, not what this device thinks it
+	// wrote.
+	if err := d.f.Sync(); err != nil {
+		d.f.Close()
+		return err
 	}
-	newCRC := crc.Sum32()
-	// dataForkChecksum @ koly[88:92] (type=2 CRC-32 already set by
-	// writeUDIF); masterChecksum @ koly[360:364]. Both equal the
-	// data-fork CRC for UDRW since the data fork IS the sectors.
-	binary.BigEndian.PutUint32(d.kolyBuf[88:92], newCRC)
-	binary.BigEndian.PutUint32(d.kolyBuf[360:364], newCRC)
-	if _, err := d.f.WriteAt(d.kolyBuf, d.kolyOffset); err != nil {
-		return fmt.Errorf("dmg: rewrite koly: %w", err)
+	if err := d.f.Close(); err != nil {
+		return err
+	}
+	if err := disk_dmg.RefreshChecksums(d.path); err != nil {
+		return fmt.Errorf("dmg: %w", err)
 	}
 	return nil
 }
