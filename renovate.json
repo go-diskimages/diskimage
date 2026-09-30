@@ -1,4 +1,21 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>go-diskimages/.github"]
+  "extends": ["github>go-diskimages/.github"],
+  "packageRules": [
+    {
+      "description": [
+        "benchmarks/go.mod replaces these three with sibling checkouts (../../qcow2, ../../raw, ../../dmg), so the require line there is a floor and not what gets built.",
+        "Renovate cannot update it even if it wanted to: it clones this repository alone, so ../../qcow2 does not exist in its container and `go mod tidy` fails with 'reading ../../qcow2/go.mod: no such file or directory'.",
+        "And there is nothing to write: a module replaced by a local path needs no checksum, and benchmarks/go.sum holds zero entries for any of the three.",
+        "The result was a renovate/artifacts failure on every dependency pull request touching this module, which ghmerge refuses and which no change could ever clear. A check that cannot pass teaches people to ignore the lane."
+      ],
+      "matchFileNames": ["benchmarks/go.mod"],
+      "matchPackageNames": [
+        "github.com/go-diskimages/qcow2",
+        "github.com/go-diskimages/raw",
+        "github.com/go-diskimages/dmg"
+      ],
+      "enabled": false
+    }
+  ]
 }
