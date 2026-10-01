@@ -3,7 +3,7 @@ module github.com/go-diskimages/diskimage
 go 1.26.4
 
 require (
-	github.com/go-diskimages/dmg v0.4.0
+	github.com/go-diskimages/dmg v0.4.1
 	github.com/go-diskimages/qcow2 v0.1.1-0.20260830123235-0fc975dd1441
 	github.com/go-fde/apfs v0.0.0-20260912170739-6acb57fc9eb0
 	github.com/go-fde/fde v0.0.0-20260922180543-f8f25a0a3e74
@@ -23,7 +23,7 @@ require (
 require (
 	github.com/anchore/go-lzo v0.1.0 // indirect
 	github.com/go-compressions/adc v0.1.0 // indirect
-	github.com/go-compressions/lzfse v0.3.0 // indirect
+	github.com/go-compressions/lzfse v0.4.1 // indirect
 	github.com/go-encryptions/ccm v0.0.0-20260620055113-74db323be0b2 // indirect
 	github.com/go-encryptions/xts v0.0.0-20260911133109-312298263872 // indirect
 	github.com/go-encryptions/zfscrypt v0.0.0-20260623125925-033c4ad509ed // indirect
