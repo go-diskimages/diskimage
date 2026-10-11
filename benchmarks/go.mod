@@ -2,7 +2,7 @@
 // gate and 6-arch CI matrix. Benchmarks only; not part of the library.
 module github.com/go-diskimages/diskimage-benchmarks
 
-go 1.26.4
+go 1.27.1
 
 require (
 	github.com/go-diskimages/dmg v0.3.0
@@ -10,7 +10,10 @@ require (
 	github.com/go-diskimages/raw v0.0.0-20260830120736-0ea897baf8a4
 )
 
-require github.com/go-compressions/lzfse v0.1.1-0.20260620062248-135e417e8ead // indirect
+require (
+	github.com/go-compressions/adc v0.2.0 // indirect
+	github.com/go-compressions/lzfse v0.5.0 // indirect
+)
 
 replace github.com/go-diskimages/qcow2 => ../../qcow2
 
