@@ -10,7 +10,7 @@ require (
 	github.com/go-encryptions/xts v0.0.0-20261012185738-047ae186ad23 // indirect
 	github.com/go-encryptions/zfscrypt v0.0.0-20260927173133-ff7dd33bb415 // indirect
 	github.com/go-fde/clear v0.0.0-20261010194107-54d03c90d379 // indirect
-	github.com/go-fde/luks v0.0.0-20261010194133-68ee356acf37 // indirect
+	github.com/go-fde/luks v0.0.0-20261013201635-bade5e568280 // indirect
 	github.com/go-filesystems/detect v0.3.0 // indirect
 	github.com/go-tpm2/common v0.1.0 // indirect
 	github.com/go-tpm2/efitcg2 v0.4.0 // indirect
@@ -27,7 +27,7 @@ require (
 	github.com/go-diskimages/dmg v0.5.0
 	github.com/go-diskimages/qcow2 v0.3.0
 	github.com/go-fde/apfs v0.0.0-20261013201543-56b159ff7a3a
-	github.com/go-fde/fde v0.0.0-20261012220943-39d1a5cc03b3
+	github.com/go-fde/fde v0.0.0-20261015181651-a5e0b588a1db
 	github.com/go-filesystems/apfs v0.3.0
 	github.com/go-filesystems/btrfs v0.3.0
 	github.com/go-filesystems/exfat v0.4.0
